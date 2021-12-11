@@ -13,12 +13,13 @@ data class Field(val value: Int, var marked: Boolean = false) {
 class Board(input: List<List<Int>>) {
     private var fields: List<List<Field>>
     var hasBingo = false
+        private set
 
     init {
         fields = input.map { it.map { value -> Field(value) }.toList() }.toList()
     }
 
-    fun checkNumber(number: Int) {
+    fun markNumber(number: Int) {
         traverse(
             Unit,
             { _: Unit, _: Int -> },
@@ -37,8 +38,8 @@ class Board(input: List<List<Int>>) {
     fun getSum(): Int {
         return traverse(
             0,
-            { total: Int, _: Int -> total },
-            { total: Int, i: Int, j: Int -> if (!fields[i][j].marked) total + fields[i][j].value else total })
+            { total, _ -> total },
+            { total, i, j -> if (!fields[i][j].marked) total + fields[i][j].value else total })
     }
 
     //    fun getSum(): Int {
@@ -53,7 +54,7 @@ class Board(input: List<List<Int>>) {
 //    }
 
     override fun toString(): String {
-        return traverse("", { s: String, _: Int -> s + "\n" }, { s: String, i: Int, j: Int -> s + fields[i][j] + " " })
+        return traverse("", { s, _ -> s + "\n" }, { s, i, j -> s + fields[i][j] + " " })
     }
 
     //    override fun toString(): String {
@@ -83,41 +84,35 @@ class Board(input: List<List<Int>>) {
     }
 
     fun hasBingo(neededConsecutive: Int = 5): Boolean {
-        var horizontalConsecutives = 0
-        var verticalConsecutives = 0
+        var consecutives = 0
         for (i in fields.indices) {
             var horizontal = 0
             var vertical = 0
-            val chunksHorizontal = mutableListOf<Int>()
-            val chunksVertical = mutableListOf<Int>()
+            val chunks = mutableListOf<Int>()
             for (j in fields[i].indices) {
                 if (fields[i][j].marked) {
                     horizontal++
                     if (j == fields[i].lastIndex) {
-                        chunksHorizontal.add(horizontal)
+                        chunks.add(horizontal)
                     }
                 } else {
-                    chunksHorizontal.add(horizontal)
+                    chunks.add(horizontal)
                     horizontal = 0
                 }
                 if (fields[j][i].marked) {
                     vertical++
                     if (j == fields[j].lastIndex) {
-                        chunksVertical.add(vertical)
+                        chunks.add(vertical)
                     }
                 } else {
-                    chunksVertical.add(vertical)
+                    chunks.add(vertical)
                     vertical = 0
                 }
             }
-            horizontalConsecutives = max(horizontalConsecutives, chunksHorizontal.maxOrNull() ?: 0)
-            verticalConsecutives = max(verticalConsecutives, chunksVertical.maxOrNull() ?: 0)
+            consecutives = max(consecutives, chunks.maxOrNull() ?: 0)
 
         }
-        hasBingo = max(verticalConsecutives, horizontalConsecutives) >= neededConsecutive
+        hasBingo = consecutives >= neededConsecutive
         return hasBingo
     }
-
-
-
 }

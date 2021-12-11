@@ -39,7 +39,7 @@ fun part1(numbersToDraw: List<Int>, boards: List<Board>) {
     while (!hasWinner) {
         val currentNumber = numbersToDraw[i++]
         boards.forEach {
-            it.checkNumber(currentNumber)
+            it.markNumber(currentNumber)
             if (it.hasBingo()) {
                 println("Winner Board:\n$it")
                 println("Sum ${it.getSum()} * $currentNumber = ${it.getSum() * currentNumber}")
@@ -56,7 +56,7 @@ fun part2(numbersToDraw: List<Int>, boards: List<Board>) {
     var currentNumber = numbersToDraw[0]
     while (unwonBoards.size > 1) {
         unwonBoards.forEach {
-            it.checkNumber(currentNumber)
+            it.markNumber(currentNumber)
             it.hasBingo()
         }
         currentNumber = numbersToDraw[++i]
@@ -66,7 +66,7 @@ fun part2(numbersToDraw: List<Int>, boards: List<Board>) {
     val lastBoard = unwonBoards[0]
     while (!lastBoard.hasBingo()) {
         currentNumber = numbersToDraw[i++]
-        lastBoard.checkNumber(currentNumber)
+        lastBoard.markNumber(currentNumber)
     }
     println("Last Board to win:\n$lastBoard")
     println("Sum ${lastBoard.getSum()} * $currentNumber = ${lastBoard.getSum() * currentNumber}")
