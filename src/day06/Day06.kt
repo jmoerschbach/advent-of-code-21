@@ -4,85 +4,52 @@ import java.io.File
 
 fun main() {
 
-    val input = File("/home/jonas/IdeaProjects/AdventToCode21/src/day06/example").readLines()
+    val input = File("/home/jonas/IdeaProjects/AdventToCode21/src/day06/input").readLines()
         .flatMap { it.split(",").map { x -> x.toInt() } }
+    part1(input)
     part2(input)
 
 }
 
 fun part2(input: List<Int>) {
-    val DAYS = 80
-    var allFish = input.toMutableList()
-    val map = mutableMapOf<Int, List<Int>>()
-    for (day in 0 until DAYS) {
-        if (allFish.size > 1000) {
-           val tmp =  allFish.chunked(allFish.size/2)
-            map[day] = tmp[1]
-            allFish = tmp[0].toMutableList()
-        } else {
-            var laternfishToAdd = 0
-            val iterator = allFish.listIterator()
-            while (iterator.hasNext()) {
-                val laternfish = iterator.next();
-                if (laternfish == 0) {
-                    iterator.set(6)
-                    laternfishToAdd++
-                } else {
-                    iterator.set(laternfish - 1)
-                }
-            }
-            for (i in 0 until laternfishToAdd) {
-                allFish.add(8)
-            }
+    val days = 256
+    val array =
+        arrayOf(
+            input.count { it == 0 }.toLong(),
+            input.count { it == 1 }.toLong(),
+            input.count { it == 2 }.toLong(),
+            input.count { it == 3 }.toLong(),
+            input.count { it == 4 }.toLong(),
+            input.count { it == 5 }.toLong(),
+            input.count { it == 6 }.toLong(),
+            input.count { it == 7 }.toLong(),
+            input.count { it == 8 }.toLong()
+        )
 
-        }
-        println("day $day: $allFish\n${map.size}")
-        println()
-    }
 
-    map.forEach{}
 
-//    calculateForStartingValue(8)
-//    val numberOfNumbers = mutableListOf<Int>()
-//    var totalFish = 0L
-//    for (i in 0 until 9) {
-//        numberOfNumbers.add(input.count { it == i })
-//    }
-//    for (i in numberOfNumbers.indices) {
-//        val x = numberOfNumbers[i]
-//        println("calculating for number $i")
-//        if (x > 0) {
-//            totalFish += x * calculateForStartingValue(i)
-//        }
-//    }
-}
-
-fun calculateForStartingValue(start: Int): Int {
-    val days = 40
-
-    val allFish = mutableListOf(start)
     for (day in 0 until days) {
-        var laternfishToAdd = 0
-        val iterator = allFish.listIterator()
-        while (iterator.hasNext()) {
-            val laternfish = iterator.next();
-            if (laternfish == 0) {
-                iterator.set(6)
-                laternfishToAdd++
-            } else {
-                iterator.set(laternfish - 1)
-            }
-        }
-        for (i in 0 until laternfishToAdd) {
-            allFish.add(8)
-        }
-        println("day $day: $allFish")
+        val newFish = array[0]
+        array[0] = array[1]
+        array[1] = array[2]
+        array[2] = array[3]
+        array[3] = array[4]
+        array[4] = array[5]
+        array[5] = array[6]
+        array[6] = array[7]
+        array[7] = array[8]
+        array[8] = newFish
+        array[6] += newFish
     }
-    return allFish.count()
+
+    val lanternfish = array.sum()
+    println("After $days days there are $lanternfish lanternfish")
+
+
 }
 
 fun part1(input: List<Int>) {
-    val days = 200
+    val days = 80
 
     val allFish = input.toMutableList()
     for (day in 0 until days) {
@@ -102,5 +69,5 @@ fun part1(input: List<Int>) {
         }
 
     }
-    println("after $days days there are ${allFish.size} lanternfish")
+    println("After $days days there are ${allFish.size} lanternfish")
 }
