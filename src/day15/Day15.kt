@@ -10,25 +10,33 @@ data class Node(var initialCost: Int, var calculatedCost: Int = Integer.MAX_VALU
         return "(${coords.x},${coords.y}):$initialCost"
 //        return "$initialCost"
     }
+
+    fun copyAndIncreaseBy(increment: Int): Node {
+        val newNode = this.copy()
+        newNode.coords = Coords(this.coords.x, this.coords.y)
+        val newValue = this.initialCost + increment
+        newNode.initialCost = if (newValue > 9) newValue - 9 else newValue
+        return newNode
+    }
 }
 
 fun main() {
-    val input = File("/home/jonas/IdeaProjects/AdventToCode21/src/day15/example").readLines()
+    val input = File("/home/jonas/IdeaProjects/AdventToCode21/src/day15/input").readLines()
         .map {
-            val line = it.map { c -> Node(Integer.parseInt(c.toString())) }.toTypedArray()
+            val line = it.map { c -> Node(Integer.parseInt(c.toString())) }
             line
-        }.toTypedArray()
+        }
     for (row in input.indices) {
         for (col in input[row].indices) {
             input[row][col].coords = Coords(col, row)
 
         }
     }
-    part1(input)
-//    part2(input)
+//    part1(input)
+    part2(input)
 }
 
-fun <T> printArray(array: Array<Array<T>>) {
+fun <T> printArray(array: List<List<T>>) {
     for (row in array.indices) {
         for (col in array[row].indices) {
             print(array[row][col])
@@ -37,33 +45,39 @@ fun <T> printArray(array: Array<Array<T>>) {
     }
 }
 
-fun part2(input: Array<Array<Node>>) {
 
-    printArray(input)
-    println()
-    printArray(copyArray(input))
+fun part2(input: List<List<Node>>) {
+    val tileSize = input.size
+    val numOfTiles = 5
+    val inflatedInput = MutableList(numOfTiles * tileSize) { MutableList<Node>(numOfTiles * tileSize) { Node(0) } }
+
+    for (tileRow in 0 until numOfTiles) {
+        for (tileCol in 0 until numOfTiles) {
+            for (row in input.indices) {
+                for (col in input[row].indices) {
+                    val coords = Coords(tileCol * tileSize + col, tileRow * tileSize + row)
+                    inflatedInput[coords.y][coords.x] =
+                        input[row][col].copyAndIncreaseBy(tileRow + tileCol)
+                    inflatedInput[coords.y][coords.x].coords = coords
+
+                }
+            }
+        }
+    }
+    println("bottom right reached with total risk of ${djikstra(inflatedInput)}")
+
+
 }
 
-fun copyArray(input: Array<Array<Node>>): Array<Array<Node>> {
-    return input.map {
-        it.map { oldNode ->
-            val newNode = oldNode.copy()
-            newNode.coords = Coords(oldNode.coords.x, oldNode.coords.y)
-            val newValue = oldNode.initialCost + 1
-            newNode.initialCost = if (newValue > 9) 1 else newValue
-            newNode
-        }.toTypedArray()
-    }.toTypedArray()
-}
-
-fun part1(input: Array<Array<Node>>) {
+fun part1(input: List<List<Node>>) {
     println("bottom right reached with total risk of ${djikstra(input)}")
 }
 
-fun djikstra(input: Array<Array<Node>>): Int {
+fun djikstra(input: List<List<Node>>): Int {
     var current = input[0][0]
     current.calculatedCost = 0
     current.initialCost = 0
+    val unvisited = input.flatten().toMutableList()
 
     //crude djikstra
     while (true) {
@@ -79,12 +93,13 @@ fun djikstra(input: Array<Array<Node>>): Int {
         if (current.coords.y == input.lastIndex && current.coords.x == input[current.coords.y].lastIndex) {
             return current.calculatedCost
         }
-        current = input.flatten().filter { !it.visited }.minByOrNull { it.calculatedCost }!!
+        unvisited.remove(current)
+        current = unvisited.minByOrNull { it.calculatedCost }!!
     }
 }
 
 
-fun findUnvisitedNeighbours(input: Array<Array<Node>>, current: Node): List<Node> {
+fun findUnvisitedNeighbours(input: List<List<Node>>, current: Node): List<Node> {
     val list = mutableListOf<Node>()
     if (current.coords.y - 1 >= 0) {
         list.add(input[current.coords.y - 1][current.coords.x])
