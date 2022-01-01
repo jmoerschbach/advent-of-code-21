@@ -33,8 +33,8 @@ val allSegments = listOf("a", "b", "c", "d", "e", "f", "g")
 
 fun main() {
     val input = File("/home/jonas/IdeaProjects/AdventToCode21/src/day08/input").readLines()
-//    part1(input)
-    part2()
+    part1(input)
+    part2(input)
 
 }
 
@@ -50,29 +50,13 @@ fun part1(input: List<String>) {
     println(easyDigits.count())
 }
 
-fun part2() {
-    val encodedInputExample = listOf(
-        "acedgfb".map { it.toString() },
-        "cdfbe".map { it.toString() },
-        "gcdfa".map { it.toString() },
-        "fbcad".map { it.toString() },
-        "dab".map { it.toString() },
-        "cefabd".map { it.toString() },
-        "cdfgeb".map { it.toString() },
-        "eafb".map { it.toString() },
-        "cagedb".map { it.toString() },
-        "ab".map { it.toString() })
-    val encodedOutputExample = listOf("cdfeb".map { it.toString() },
-        "fcadb".map { it.toString() },
-        "cdfeb".map { it.toString() },
-        "cdbaf".map { it.toString() })
-
-
-    val decodedOutput = determineOutput(
-        encodedInputExample, encodedOutputExample
-
-    )
-    println(decodedOutput)
+fun part2(input: List<String>) {
+    val decodedOutputs = input.map {
+        val inputs = it.substringBeforeLast(" |").split(" ").map { s -> s.map { c -> c.toString() } }
+        val outputs = it.substringAfter("| ").split(" ").map { s -> s.map { c -> c.toString() } }
+        determineOutput(inputs, outputs)
+    }
+    println(decodedOutputs.sum())
 }
 
 fun determineOutput(encodedInput: List<List<String>>, encodedOutput: List<List<String>>): Int {
@@ -87,29 +71,16 @@ fun determineOutput(encodedInput: List<List<String>>, encodedOutput: List<List<S
     )
 
 
+    //order is important!
+    //start with unique digits which are easy to identify
     decodeInputDigit(1, encodedInput, currentMapping)
-    println("current mapping:")
-    println(currentMapping)
-
     decodeInputDigit(7, encodedInput, currentMapping)
-    println("current mapping:")
-    println(currentMapping)
-
     decodeInputDigit(4, encodedInput, currentMapping)
-    println("current mapping:")
-    println(currentMapping)
-
+    //then use selected digits to do the rest of the mapping
     decodeInputDigit(6, encodedInput, currentMapping)
-    println("current mapping:")
-    println(currentMapping)
-
     decodeInputDigit(2, encodedInput, currentMapping)
-    println("current mapping:")
-    println(currentMapping)
-
     decodeInputDigit(5, encodedInput, currentMapping)
-    println("current mapping:")
-    println(currentMapping)
+
     val reversedMapping = mutableMapOf<String, String>()
     currentMapping.forEach { (key, value) -> reversedMapping[value.first()] = key }
 
@@ -124,33 +95,32 @@ private fun decodeInputDigit(
     currentMapping: MutableMap<String, MutableList<String>>
 ) {
     val encodedDigit = findDigit(digit, encodedInput, currentMapping)
-    println(encodedDigit)
 
     val segmentsToBeShown = digitToSegmentMapping[digit]!!
-    println("segments to be shown: $segmentsToBeShown")
-    val segmentsToBeNotShown = allSegments.minus(segmentsToBeShown)
-    println("segments to not be shown: $segmentsToBeNotShown")
+    val segmentsToBeNotShown = allSegments.minus(segmentsToBeShown.toSet())
     segmentsToBeShown.forEach {
         val oldValues = currentMapping[it]!!
-        currentMapping[it] = oldValues.intersect(encodedDigit).toMutableList()
+        currentMapping[it] = oldValues.intersect(encodedDigit.toSet()).toMutableList()
     }
     segmentsToBeNotShown.forEach {
         val oldValues = currentMapping[it]!!
-        currentMapping[it] = oldValues.minus(encodedDigit).toMutableList()
+        currentMapping[it] = oldValues.minus(encodedDigit.toSet()).toMutableList()
     }
 }
 
 fun findDigit(
     toFind: Int, encodedInput: List<List<String>>, currentMapping: Map<String, List<String>>
 ): List<String> {
-    if (toFind == 6) {
-        println(currentMapping["c"])
-    }
+
     return when (toFind) {
         1 -> encodedInput.first { it.size == 2 }
         7 -> encodedInput.first { it.size == 3 }
         4 -> encodedInput.first { it.size == 4 }
         6 -> {
+            // 6 is one of 3 digits (0, 6, 9) with 6 segments
+            // it is identified by not having BOTH segment c AND f on
+            // at this point c and f are not uniquely mapped (e.g. c -> [a, b] and f -> [a, b]
+            // so we are simply checking that not both of the possible segments are on
             encodedInput.filter { it.size == 6 }.first {
                 !(it.contains(
                     currentMapping["c"]!![0]
@@ -175,10 +145,9 @@ fun findDigit(
 
 }
 
-fun decodeOutputDigit(encodedOutputDigit: List<String>, currentMapping: Map<String, String>): Int {
+fun decodeOutputDigit(encodedOutputDigit: List<String>, mapping: Map<String, String>): Int {
     val list = encodedOutputDigit.map {
-        currentMapping[it]!!.first().toString()
-    }
-    println(list.sorted())
-    return segmentsToDigitMapping[list.sorted()]!!
+        mapping[it]!!.first().toString()
+    }.sorted()
+    return segmentsToDigitMapping[list]!!
 }
