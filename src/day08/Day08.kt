@@ -4,32 +4,32 @@ import java.io.File
 
 val digitToSegmentMapping =
     mapOf(
-        0 to listOf("a", "b", "c", "e", "f", "g"),
-        1 to listOf("c", "f"),
-        2 to listOf("a", "c", "d", "e", "g"),
-        3 to listOf("a", "c", "d", "f", "g"),
-        4 to listOf("b", "c", "d", "f"),
-        5 to listOf("a", "b", "d", "f", "g"),
-        6 to listOf("a", "b", "d", "e", "f", "g"),
-        7 to listOf("a", "c", "f"),
-        8 to listOf("a", "b", "c", "d", "e", "f", "g"),
-        9 to listOf("a", "b", "c", "d", "f", "g")
+        0 to setOf("a", "b", "c", "e", "f", "g"),
+        1 to setOf("c", "f"),
+        2 to setOf("a", "c", "d", "e", "g"),
+        3 to setOf("a", "c", "d", "f", "g"),
+        4 to setOf("b", "c", "d", "f"),
+        5 to setOf("a", "b", "d", "f", "g"),
+        6 to setOf("a", "b", "d", "e", "f", "g"),
+        7 to setOf("a", "c", "f"),
+        8 to setOf("a", "b", "c", "d", "e", "f", "g"),
+        9 to setOf("a", "b", "c", "d", "f", "g")
     )
 
 val segmentsToDigitMapping = mapOf(
-    listOf("a", "b", "c", "e", "f", "g") to 0,
-    listOf("c", "f") to 1,
-    listOf("a", "c", "d", "e", "g") to 2,
-    listOf("a", "c", "d", "f", "g") to 3,
-    listOf("b", "c", "d", "f") to 4,
-    listOf("a", "b", "d", "f", "g") to 5,
-    listOf("a", "b", "d", "e", "f", "g") to 6,
-    listOf("a", "c", "f") to 7,
-    listOf("a", "b", "c", "d", "e", "f", "g") to 8,
-    listOf("a", "b", "c", "d", "f", "g") to 9
+    setOf("a", "b", "c", "e", "f", "g") to 0,
+    setOf("c", "f") to 1,
+    setOf("a", "c", "d", "e", "g") to 2,
+    setOf("a", "c", "d", "f", "g") to 3,
+    setOf("b", "c", "d", "f") to 4,
+    setOf("a", "b", "d", "f", "g") to 5,
+    setOf("a", "b", "d", "e", "f", "g") to 6,
+    setOf("a", "c", "f") to 7,
+    setOf("a", "b", "c", "d", "e", "f", "g") to 8,
+    setOf("a", "b", "c", "d", "f", "g") to 9
 )
 
-val allSegments = listOf("a", "b", "c", "d", "e", "f", "g")
+val allSegments = setOf("a", "b", "c", "d", "e", "f", "g")
 
 fun main() {
     val input = File("/home/jonas/IdeaProjects/AdventToCode21/src/day08/input").readLines()
@@ -148,6 +148,6 @@ fun findDigit(
 fun decodeOutputDigit(encodedOutputDigit: List<String>, mapping: Map<String, String>): Int {
     val list = encodedOutputDigit.map {
         mapping[it]!!.first().toString()
-    }.sorted()
+    }.sorted().toSet()
     return segmentsToDigitMapping[list]!!
 }
