@@ -2,6 +2,8 @@ package day16
 
 
 import java.io.File
+import kotlin.math.max
+import kotlin.math.min
 
 fun main() {
     val input = File("/home/jonas/IdeaProjects/AdventToCode21/src/day16/input").readLines().first()
@@ -80,36 +82,70 @@ fun part1(input: String) {
 
 }
 
-enum class Operator(val code: Long) {
-    SUM(-1),
-    PRODUCT(-2),
-    MIN(-3),
-    MAX(-4),
-    GT(-5),
-    LT(-6),
-    EQU(-7),
-    NONE(-8)
+enum class Operator {
+    SUM,
+    PRODUCT,
+    MIN,
+    MAX,
+    GT,
+    LT,
+    EQU,
+    NONE
 }
 
-class Expression(val operator: Operator) {
+class Expression(private val operator: Operator) {
     var succeedingExpression: Expression? = null
     private val operands: MutableList<Long> = mutableListOf()
+    private val succedingExpressions: MutableList<Expression> = mutableListOf()
     fun eval(): Long {
         val value = succeedingExpression?.eval()
         return when (operator) {
             Operator.SUM -> {
                 val sum = operands.sum()
-                sum + (value ?: 0)
+//                sum + (value ?: 0)
+                succedingExpressions.sumOf { it.eval() }
             }
             Operator.PRODUCT -> {
+                succedingExpressions.map { it.eval() }.reduce { acc, l -> acc * l }
                 val product = operands.reduce { acc, l -> acc * l }
                 product * (value ?: 1)
             }
-            Operator.NONE -> {
-                operands[0]
+            Operator.MIN -> {
+                val oneMin = operands.minOrNull()
+                if (value == null)
+                    oneMin!!
+                else min(oneMin!!, value)
+            }
+            Operator.MAX -> {
+                val oneMax = operands.maxOrNull()
+                if (value == null)
+                    oneMax!!
+                else max(oneMax!!, value)
+            }
+            Operator.GT -> {
+
+                return if (value == null) {
+                    if (operands[0] > operands[1]) 1 else 0
+                } else {
+                    if (value > operands[0]) 1 else 0
+                }
+            }
+            Operator.LT -> {
+                return if (value == null) {
+                    if (operands[0] > operands[1]) 0 else 1
+                } else {
+                    if (value > operands[0]) 0 else 1
+                }
+            }
+            Operator.EQU -> {
+                return if (value == null) {
+                    if (operands[0] == operands[1]) 1 else 0
+                } else {
+                    if (value == operands[0]) 1 else 0
+                }
             }
             else -> {
-                0
+                operands[0]
             }
         }
     }
@@ -118,38 +154,19 @@ class Expression(val operator: Operator) {
         operands.add(operand)
     }
 
-    override fun toString(): String {
-        return "(${operator} ${succeedingExpression?.toString()}, ${operands.joinToString { it.toString() }})"
+    fun addExpression(expression: Expression) {
+        succedingExpressions.add(expression)
     }
-}
 
-fun eval(expression: List<Long>): Long {
-    return when (expression[0]) {
-        Operator.SUM.code -> {
-            var sum = expression[1]
-            for (i in 2 until expression.size) {
-                sum += expression[i]
-            }
-            sum
-        }
-        Operator.PRODUCT.code -> {
-            var sum = expression[1]
-            for (i in 2 until expression.size) {
-                sum *= expression[i]
-            }
-            sum
-        }
-
-        else -> {
-            0
-        }
+    override fun toString(): String {
+        val expr = if (succeedingExpression == null) "" else succeedingExpression.toString() + ","
+        return "(${operator} $expr ${operands.joinToString { it.toString() }})"
     }
 }
 
 fun parseComplete(
     input: String,
-    expressions: MutableList<MutableList<Long>>,
-    currentExpression: MutableList<Long> = mutableListOf()
+    currentExpression: Expression
 ): String {
     val version = Integer.parseInt(input.substring(0..2), 2)
     val typeId = Integer.parseInt(input.substring(3..5), 2)
@@ -166,7 +183,7 @@ fun parseComplete(
         } while (group[0] == '1')
         val value = builder.toString().toLong(2)
 //        println("parsed literal value: $value")
-        currentExpression.add(value)
+        currentExpression.addOperand(value)
         return rest
     } else {
         //operator
@@ -174,34 +191,36 @@ fun parseComplete(
 
         val lengthTypeId = if (rest[0] == '0') 0 else 1
         rest = rest.removeRange(0..0)
-        val newExpression = mutableListOf<Long>()
-        when (typeId) {
-            0 -> newExpression.add(Operator.SUM.code)
-            1 -> newExpression.add(Operator.PRODUCT.code)
-            2 -> newExpression.add(Operator.MIN.code)
-            3 -> newExpression.add(Operator.MAX.code)
-            5 -> newExpression.add(Operator.GT.code)
-            6 -> newExpression.add(Operator.LT.code)
-            7 -> newExpression.add(Operator.EQU.code)
+
+        val operator = when (typeId) {
+            0 -> Operator.SUM
+            1 -> Operator.PRODUCT
+            2 -> Operator.MIN
+            3 -> Operator.MAX
+            5 -> Operator.GT
+            6 -> Operator.LT
+            7 -> Operator.EQU
+            else -> Operator.NONE
         }
+        val newExpression = Expression(operator)
         if (lengthTypeId == 0) {
             val subpacketLength = Integer.parseInt(rest.substring(0..14), 2)
             rest = rest.removeRange(0..14)
             val leftover = rest.length - subpacketLength
             while (rest.length > leftover) {
-                rest = parseComplete(rest, expressions, newExpression)
+                rest = parseComplete(rest, newExpression)
             }
-            expressions.add(newExpression)
-            println("first: ${eval(newExpression)}")
+            currentExpression.succeedingExpression = newExpression
+            println("first: $currentExpression")
             return rest
         } else {
             val subpacketNumber = Integer.parseInt(rest.substring(0..10), 2)
             rest = rest.removeRange(0..10)
             for (packetNr in 0 until subpacketNumber) {
-                rest = parseComplete(rest, expressions, newExpression)
+                rest = parseComplete(rest, newExpression)
             }
-            expressions.add(newExpression)
-            println("second: ${eval(newExpression)}")
+            currentExpression.succeedingExpression = newExpression
+            println("second: $currentExpression")
             return rest
         }
     }
@@ -210,7 +229,9 @@ fun parseComplete(
 
 fun part2(input: String) {
     val binaryString = convertToBinaryString(input)
-    val expressions = mutableListOf<MutableList<Long>>()
-    parseComplete(binaryString, expressions)
-    expressions.forEach { println(it) }
+    val startingExpression = Expression(Operator.SUM)
+    startingExpression.addOperand(0)
+    parseComplete(binaryString, startingExpression)
+    println(startingExpression)
+    println(startingExpression.eval())
 }
