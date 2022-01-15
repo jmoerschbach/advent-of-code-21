@@ -8,6 +8,7 @@ fun main() {
     val inputImage = input.subList(2, input.size).map { it.toList() }
 
     part1(algorithm, inputImage)
+    part2(algorithm,inputImage)
 }
 
 fun extendImage(inputImage: List<List<Char>>, extension: Char): List<List<Char>> {
@@ -37,10 +38,17 @@ fun <T> printArray(array: List<List<T>>) {
 }
 
 fun part1(algorithm: String, inputImage: List<List<Char>>) {
-
     val outputImage = enhance(algorithm, enhance(algorithm, inputImage, '.'), '#')
     val pixelsLit = outputImage.sumOf { it.sumOf { c -> if (c == '#') 1.toInt() else 0 } }
-    printArray(outputImage)
+    println("pixelsLit: $pixelsLit")
+}
+
+fun part2(algorithm: String, inputImage: List<List<Char>>) {
+    var outputImage= inputImage
+    for (i in 0 until 50) {
+        outputImage = enhance(algorithm, outputImage, if (i % 2 == 0) '.' else '#')
+    }
+    val pixelsLit = outputImage.sumOf { it.sumOf { c -> if (c == '#') 1.toInt() else 0 } }
     println("pixelsLit: $pixelsLit")
 
 
