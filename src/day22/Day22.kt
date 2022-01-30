@@ -69,8 +69,8 @@ fun part2(input: List<Instruction>) {
         reactorCore.addAll(cuboidsToAdd)
     }
 
-    val numberOfOnCuboids =reactorCore.sumOf { it.first * it.second.numberOfCubes() }
-println(numberOfOnCuboids)
+    val numberOfOnCuboids = reactorCore.sumOf { it.first * it.second.numberOfCubes() }
+    println(numberOfOnCuboids)
 }
 
 fun getIntersection(a: Cuboid, b: Cuboid): Cuboid? {
